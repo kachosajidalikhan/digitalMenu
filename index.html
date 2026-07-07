@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zaiqa — 3D Menu Demo</title>
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --charcoal:#161311;
+    --charcoal-2:#211c19;
+    --brass:#c9973f;
+    --brass-soft:#e6c078;
+    --cream:#f3ece1;
+    --cream-dim:#c9c0b2;
+    --line:#3a332c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--charcoal);
+    color:var(--cream);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:520px;margin:0 auto;min-height:100vh;background:var(--charcoal);position:relative;}
+
+  header{
+    padding:34px 24px 22px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Marcellus',serif;
+    font-size:40px;
+    margin:0 0 6px;
+    color:var(--cream);
+    letter-spacing:.01em;
+  }
+  .tagline{
+    font-size:13px;
+    color:var(--cream-dim);
+    margin:0;
+  }
+  .divider{
+    width:64px;height:2px;
+    background:var(--brass);
+    margin:18px auto 0;
+    border-radius:2px;
+  }
+
+  .notice{
+    margin:16px 20px 0;
+    padding:12px 14px;
+    background:var(--charcoal-2);
+    border:1px solid var(--line);
+    border-left:3px solid var(--brass);
+    border-radius:6px;
+    font-size:12px;
+    line-height:1.5;
+    color:var(--cream-dim);
+  }
+  .notice b{color:var(--brass-soft);}
+
+  .section-label{
+    padding:26px 24px 8px;
+    font-family:'Marcellus',serif;
+    font-size:15px;
+    letter-spacing:.05em;
+    color:var(--brass-soft);
+  }
+  .menu{
+    padding:0 20px 40px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .card{
+    display:flex;
+    gap:14px;
+    background:var(--charcoal-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px;
+    align-items:center;
+  }
+  .thumb{
+    width:64px;height:64px;
+    border-radius:8px;
+    object-fit:cover;
+    flex-shrink:0;
+    background:#000;
+  }
+  .info{flex:1;min-width:0;}
+  .name{
+    font-family:'Marcellus',serif;
+    font-size:17px;
+    margin:0 0 3px;
+    color:var(--cream);
+  }
+  .desc{
+    font-size:11.5px;
+    color:var(--cream-dim);
+    margin:0 0 6px;
+    line-height:1.4;
+  }
+  .price{
+    font-size:13px;
+    color:var(--brass-soft);
+    font-weight:600;
+  }
+  .view3d-btn{
+    border:1px solid var(--brass);
+    background:transparent;
+    color:var(--brass-soft);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    padding:8px 12px;
+    border-radius:20px;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:background .15s ease;
+    white-space:nowrap;
+  }
+  .view3d-btn:hover{background:var(--brass);color:var(--charcoal);}
+
+  .modal-overlay{
+    position:fixed;inset:0;
+    background:rgba(10,8,6,.86);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:50;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal{
+    width:100%;
+    max-width:520px;
+    background:var(--charcoal-2);
+    border-top:1px solid var(--line);
+    border-radius:18px 18px 0 0;
+    padding:16px 18px 26px;
+    animation:slideUp .25s ease;
+  }
+  @keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .modal-head{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:8px;
+  }
+  .modal-head h3{
+    font-family:'Marcellus',serif;
+    font-size:19px;margin:0;color:var(--cream);
+  }
+  .close-btn{
+    background:none;border:none;color:var(--cream-dim);
+    font-size:22px;cursor:pointer;line-height:1;padding:4px;
+  }
+  model-viewer{
+    width:100%;height:280px;
+    background:linear-gradient(180deg,#0d0b09,#1c1713);
+    border-radius:10px;
+  }
+  .hint{
+    text-align:center;font-size:11px;color:var(--cream-dim);
+    margin-top:8px;
+  }
+
+  .debug{
+    margin:0 20px 20px;
+    padding:10px 12px;
+    background:#2a1414;
+    border:1px solid #5a2a2a;
+    border-radius:6px;
+    font-size:11px;
+    color:#e0a8a8;
+    display:none;
+    white-space:pre-wrap;
+    font-family:monospace;
+  }
+  .debug.show{display:block;}
+
+  footer{
+    text-align:center;
+    padding:18px 20px 30px;
+    font-size:10.5px;
+    color:#6b6259;
+    letter-spacing:.03em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Scan &middot; Browse &middot; Rotate</div>
+    <h1>Zaiqa</h1>
+    <p class="tagline">Table 12 — Digital Menu</p>
+    <div class="divider"></div>
+  </header>
+
+  <div class="notice">
+    <b>Prototype note:</b> Menu text/prices below are pulled live from a published Google Sheet. 3D objects shown are placeholder models (real dish scans would replace these). This whole page is what opens after a customer scans the table QR code.
+  </div>
+
+  <div class="debug" id="debugBox"></div>
+
+  <div class="section-label">Chef's Selections</div>
+  <div class="menu" id="menuList"></div>
+
+  <footer>ZAIQA RESTAURANT — POWERED BY QR MENU SYSTEM</footer>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Dish name</h3>
+      <button class="close-btn" id="closeBtn">&times;</button>
+    </div>
+    <model-viewer id="viewer" camera-controls auto-rotate touch-action="pan-y" shadow-intensity="1" exposure="0.9"></model-viewer>
+    <p class="hint">Drag to rotate &middot; Pinch to zoom</p>
+  </div>
+</div>
+
+<script>
+// -----------------------------------------------------------------
+// LIVE GOOGLE SHEET (via opensheet.elk.sh — converts the Sheet to
+// JSON and serves it with proper CORS headers, unlike Google's own
+// CSV export which browsers often can't fetch cross-origin).
+//
+// Format: https://opensheet.elk.sh/<spreadsheet_id>/<tab_name>
+// Sheet must have "Anyone with the link can view" sharing enabled.
+// -----------------------------------------------------------------
+const SHEET_ID = "1XDpqjviVN1tfMKo_3XMxNk-QBKs7UA1xdcB7Uet65hI";
+const SHEET_TAB = "Sheet1";
+const SHEET_JSON_URL = `https://opensheet.elk.sh/${SHEET_ID}/${SHEET_TAB}`;
+
+// Fallback demo data — used only if the Sheet can't be reached, or
+// returns zero valid rows. IMPORTANT: keep this uncommented, or the
+// page renders nothing at all if the Sheet fetch/parse ever fails.
+const fallbackMenuData = [
+  {
+    name: "Chicken Biryani",
+    desc: "Basmati rice layered with spiced chicken & saffron.",
+    price: "Rs. 650",
+    image: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/Astronaut/screenshot/screenshot.png",
+    model: "https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+  },
+  {
+    name: "Beef Seekh Kebab",
+    desc: "Char-grilled minced beef skewers, house spice blend.",
+    price: "Rs. 480",
+    image: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/RobotExpressive/screenshot/screenshot.gif",
+    model: "https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"
+  },
+  {
+    name: "Chicken Karahi",
+    desc: "Tomato-based karahi, green chili, fresh coriander.",
+    price: "Rs. 720",
+    image: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/Fox/screenshot/screenshot.gif",
+    model: "https://modelviewer.dev/shared-assets/models/Fox.glb"
+  }
+];
+
+// opensheet returns an array of objects keyed by the Sheet's header
+// row, e.g. [{ name: "...", desc: "...", price: "...", ... }, ...].
+// This normalizes keys to lowercase so header casing in the Sheet
+// (Name vs name, Price vs price) doesn't matter.
+function normalizeSheetRows(rows){
+  return rows
+    .map(row => {
+      const clean = {};
+      for(const key in row){
+        clean[key.trim().toLowerCase()] = String(row[key]).trim();
+      }
+      return clean;
+    })
+    .filter(row => row.name);
+}
+
+function showDebug(msg){
+  const box = document.getElementById('debugBox');
+  box.textContent = "Debug: " + msg;
+  box.classList.add('show');
+}
+
+async function loadMenu(){
+  try{
+    const res = await fetch(SHEET_JSON_URL);
+    if(!res.ok) throw new Error("Sheet responded with status " + res.status);
+    const rows = await res.json();
+    const items = normalizeSheetRows(rows);
+    if(items.length === 0){
+      showDebug("Sheet was reachable but 0 usable rows. Check that the header row has a 'name' column and at least one data row below it.");
+      renderMenu(fallbackMenuData);
+    }else{
+      renderMenu(items);
+    }
+  }catch(err){
+    showDebug("Could not load the Sheet (" + err.message + "). Showing fallback menu instead. Check the Sheet's Share setting is 'Anyone with the link can view'.");
+    renderMenu(fallbackMenuData);
+  }
+}
+
+const menuList = document.getElementById('menuList');
+const overlay = document.getElementById('modalOverlay');
+const viewer = document.getElementById('viewer');
+const modalTitle = document.getElementById('modalTitle');
+const closeBtn = document.getElementById('closeBtn');
+
+let currentMenu = [];
+
+function renderMenu(items){
+  currentMenu = items;
+  menuList.innerHTML = '';
+  items.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <img class="thumb" src="${item.image}" alt="${item.name}" onerror="this.style.opacity=0">
+      <div class="info">
+        <p class="name">${item.name}</p>
+        <p class="desc">${item.desc}</p>
+        <span class="price">${item.price}</span>
+      </div>
+      <button class="view3d-btn" data-index="${i}">View in 3D</button>
+    `;
+    menuList.appendChild(card);
+  });
+}
+
+loadMenu();
+
+menuList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.view3d-btn');
+  if(!btn) return;
+  const item = currentMenu[btn.dataset.index];
+  modalTitle.textContent = item.name;
+  viewer.src = item.model;
+  overlay.classList.add('active');
+});
+
+closeBtn.addEventListener('click', () => overlay.classList.remove('active'));
+overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.classList.remove('active'); });
+</script>
+</body>
+</html>
